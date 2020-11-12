@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Zoo
@@ -7,51 +8,69 @@ namespace Zoo
     {
         public void StartProgram()
         {
-            Animal _animal = new Animal();
-            const int arriveTime = 0, leaveTime = 1;
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            string month = ReturnUsersVisitingMonth();
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("Zooet är öppet mellan 06-23.");
 
+            var activeHours = ReturnUsersTimeInZoo();
+            const int arriveTime = 0, leaveTime = 1;
+            int userArrives = int.Parse(activeHours[arriveTime]);
+            int userLeaves = int.Parse(activeHours[leaveTime]);
+
+            Console.WriteLine("");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("Under ditt besök kan du se:");
+            Console.ResetColor();
+            DisplayAllAwakeAnimals(userArrives, userLeaves, month);
+        }
+        private string ReturnUsersVisitingMonth()
+        {
             Console.WriteLine("Vilket datum vill du besöka Neptunus Zoo?");
+            Console.ResetColor();
             string dateInput = Console.ReadLine();
             DateTime date = DateTime.Parse(dateInput);
             string month = date.ToString("MMMM");
-            Console.WriteLine("Zooet är öppet mellan 06-23.");
-
+            return month;
+        }
+        private string[] ReturnUsersTimeInZoo()
+        {
             Console.WriteLine("Vilken tid vill du komma?");
+            Console.ResetColor();
             string timeInput = Console.ReadLine();
-            var hours = timeInput.Split('-');
-            int arrive = int.Parse(hours[arriveTime]);
-            int leaves = int.Parse(hours[leaveTime]);
-            Console.WriteLine("");
-
-            Console.WriteLine("Under ditt besök kan du se:");
+            string[] hours = timeInput.Split('-');
+            return hours;
+        }
+        private void DisplayAllAwakeAnimals(int userArrives, int userLeaves, string month)
+        {
+            Animal _animal = new Animal();
             var animalList = _animal.AnimalList();
+            Console.ForegroundColor = ConsoleColor.Yellow;
 
             foreach (var animal in animalList)
             {
-                if (AnimalIsAwake(arrive, leaves, animal) && IsFeedingTime(arrive, leaves, animal) && !IsHibernated(month, animal))
+                if (IsAnimalAwake(userArrives, userLeaves, animal) && IsFeedingTime(userArrives, userLeaves, animal) && !IsHibernated(month, animal))
                 {
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine(animal.Name + "  *** matas kl " + animal.FeedingTime + " ***");
-                    Console.ResetColor();
+                    Console.WriteLine($"{animal.Name}  *** matas kl {animal.FeedingTime.Hours} ***");
                 }
-                else if (AnimalIsAwake(arrive, leaves, animal) && !IsFeedingTime(arrive, leaves, animal) && !IsHibernated(month, animal))
+                else if (IsAnimalAwake(userArrives, userLeaves, animal) && !IsFeedingTime(userArrives, userLeaves, animal) && !IsHibernated(month, animal))
                 {
-                    Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine(animal.Name);
-                    Console.ResetColor();
                 }
             }
+            Console.ResetColor();
         }
-        public bool AnimalIsAwake(int arrive, int leaves, Animal animal)
+        private bool IsAnimalAwake(int userArrives, int userLeaves, Animal animal)
         {
             if (animal.FallsAsleep.Hours < 10)
             {
-                if ((arrive >= animal.WakesUp.Hours || leaves > animal.WakesUp.Hours) && (arrive > animal.FallsAsleep.Hours || leaves > animal.FallsAsleep.Hours))
+                if ((userArrives >= animal.WakesUp.Hours || userLeaves > animal.WakesUp.Hours) && (userArrives > animal.FallsAsleep.Hours || userLeaves > animal.FallsAsleep.Hours))
                 {
                     return true;
                 }
             }
-            if ((arrive >= animal.WakesUp.Hours || leaves > animal.WakesUp.Hours) && (arrive < animal.FallsAsleep.Hours || leaves < animal.FallsAsleep.Hours))
+
+            if ((userArrives >= animal.WakesUp.Hours || userLeaves > animal.WakesUp.Hours) && (userArrives < animal.FallsAsleep.Hours || userLeaves < animal.FallsAsleep.Hours))
             {
                 return true;
             }
@@ -60,9 +79,9 @@ namespace Zoo
                 return false;
             }
         }
-        public bool IsFeedingTime(int arrive, int leaves, Animal animal)
+        private bool IsFeedingTime(int userArrives, int userLeaves, Animal animal)
         {
-            if (arrive < animal.FeedingTime.Hours && leaves > animal.FeedingTime.Hours)
+            if (userArrives < animal.FeedingTime.Hours && userLeaves > animal.FeedingTime.Hours)
             {
                 return true;
             }
@@ -71,7 +90,7 @@ namespace Zoo
                 return false;
             }
         }
-        public bool IsHibernated(string month, Animal animal)
+        private bool IsHibernated(string month, Animal animal)
         {
             string[] summerMonths = { "JUNI", "JULI", "AUGUSTI" };
             string[] winterMonths = { "DECEMBER", "JANUARI", "FEBRUARI" };

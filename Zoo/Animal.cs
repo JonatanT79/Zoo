@@ -10,6 +10,7 @@ namespace Zoo
         public TimeSpan WakesUp { get; set; }
         public TimeSpan FallsAsleep { get; set; }
         public TimeSpan FeedingTime { get; set; }
+
         public List<Animal> AnimalList()
         {
             List<Animal> AnimalList = new List<Animal>()
