@@ -23,6 +23,7 @@ namespace Zoo
                 new Animal() { Name = "Varg", Hibernate = "-", WakesUp = new TimeSpan(6, 0, 0), FallsAsleep = new TimeSpan(20, 0, 0), FeedingTime = new TimeSpan(12, 0, 0)},
                 new Animal() { Name = "Älg", Hibernate = "-", WakesUp = new TimeSpan(7, 0, 0), FallsAsleep = new TimeSpan(19, 0, 0), FeedingTime = new TimeSpan(10, 0, 0)}
             };
+
             return AnimalList;
         }
     }
