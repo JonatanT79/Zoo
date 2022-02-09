@@ -4,44 +4,62 @@ using System.Linq;
 
 namespace Zoo
 {
+    enum SummerMonths
+    {
+        JUNI = 6,
+        JULI = 7,
+        AUGUSTI = 8,
+    }
+    enum WinterMonths
+    {
+        JANUARI = 1,
+        FEBRUARI = 2,
+        DECEMBER = 12
+    }
     class Start
     {
         public void StartProgram()
         {
+            Visitor visitor = new Visitor();
+
             Console.ForegroundColor = ConsoleColor.Cyan;
-            string month = ReturnUsersVisitingMonth();
+            visitor.VisitingDate = ReturnVisitorVisitingMonth();
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("Zooet är öppet mellan 06-23.");
 
-            var activeHours = ReturnUsersTimeInZoo();
-            const int arriveTime = 0, leaveTime = 1;
-            int userArrives = int.Parse(activeHours[arriveTime]);
-            int userLeaves = int.Parse(activeHours[leaveTime]);
+            visitor.ArriveTime = ReturnVisitorArriveTimeInZoo();
+            visitor.LeaveTime = ReturnVisitorLeaveTime();
 
             Console.WriteLine("");
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("Under ditt besök kan du se:");
             Console.ResetColor();
-            DisplayAllAwakeAnimals(userArrives, userLeaves, month);
+            DisplayAllAwakeAnimals(visitor);
         }
-        private string ReturnUsersVisitingMonth()
+        private DateTime ReturnVisitorVisitingMonth()
         {
-            Console.WriteLine("Vilket datum vill du besöka Neptunus Zoo?");
+            Console.WriteLine("Vilket datum vill du besöka Neptunus Zoo? (datum-månad)");
             Console.ResetColor();
             string dateInput = Console.ReadLine();
             DateTime date = DateTime.Parse(dateInput);
-            string month = date.ToString("MMMM");
-            return month;
+            return date;
         }
-        private string[] ReturnUsersTimeInZoo()
+        private TimeSpan ReturnVisitorArriveTimeInZoo()
         {
-            Console.WriteLine("Vilken tid vill du komma?");
+            Console.WriteLine("Vilken tid kommer du till Zoo:et? (Format: hh:mm)");
             Console.ResetColor();
             string timeInput = Console.ReadLine();
-            string[] hours = timeInput.Split('-');
-            return hours;
+            TimeSpan arriveTime = TimeSpan.Parse(timeInput);
+            return arriveTime;
         }
-        private void DisplayAllAwakeAnimals(int userArrives, int userLeaves, string month)
+        private TimeSpan ReturnVisitorLeaveTime()
+        {
+            Console.WriteLine("Vilken tid lämnar du Zoo:et? (Format: hh:mm)");
+            string timeInput = Console.ReadLine();
+            TimeSpan leaveTime = TimeSpan.Parse(timeInput);
+            return leaveTime;
+        }
+        private void DisplayAllAwakeAnimals(Visitor visitor)
         {
             Animal _animal = new Animal();
             var animalList = _animal.AnimalList();
@@ -49,28 +67,28 @@ namespace Zoo
 
             foreach (var animal in animalList)
             {
-                if (IsAnimalAwake(userArrives, userLeaves, animal) && IsFeedingTime(userArrives, userLeaves, animal) && !IsHibernated(month, animal))
+                if (IsAnimalAwake(visitor, animal) && IsFeedingTime(visitor, animal) && !IsHibernated(visitor, animal))
                 {
                     Console.WriteLine($"{animal.Name}  *** matas kl {animal.FeedingTime.Hours} ***");
                 }
-                else if (IsAnimalAwake(userArrives, userLeaves, animal) && !IsFeedingTime(userArrives, userLeaves, animal) && !IsHibernated(month, animal))
+                else if (IsAnimalAwake(visitor, animal) && !IsFeedingTime(visitor, animal) && !IsHibernated(visitor, animal))
                 {
                     Console.WriteLine(animal.Name);
                 }
             }
             Console.ResetColor();
         }
-        private bool IsAnimalAwake(int userArrives, int userLeaves, Animal animal)
+        private bool IsAnimalAwake(Visitor visitor, Animal animal)
         {
             if (animal.FallsAsleep.Hours < 10)
             {
-                if ((userArrives >= animal.WakesUp.Hours || userLeaves > animal.WakesUp.Hours) && (userArrives > animal.FallsAsleep.Hours || userLeaves > animal.FallsAsleep.Hours))
+                if ((visitor.ArriveTime >= animal.WakesUp || visitor.LeaveTime > animal.WakesUp) && (visitor.ArriveTime > animal.FallsAsleep || visitor.LeaveTime > animal.FallsAsleep))
                 {
                     return true;
                 }
             }
 
-            if ((userArrives >= animal.WakesUp.Hours || userLeaves > animal.WakesUp.Hours) && (userArrives < animal.FallsAsleep.Hours || userLeaves < animal.FallsAsleep.Hours))
+            if ((visitor.ArriveTime >= animal.WakesUp || visitor.LeaveTime > animal.WakesUp) && (visitor.ArriveTime < animal.FallsAsleep || visitor.LeaveTime < animal.FallsAsleep))
             {
                 return true;
             }
@@ -79,9 +97,9 @@ namespace Zoo
                 return false;
             }
         }
-        private bool IsFeedingTime(int userArrives, int userLeaves, Animal animal)
+        private bool IsFeedingTime(Visitor visitor, Animal animal)
         {
-            if (userArrives < animal.FeedingTime.Hours && userLeaves > animal.FeedingTime.Hours)
+            if (visitor.ArriveTime < animal.FeedingTime && visitor.LeaveTime > animal.FeedingTime)
             {
                 return true;
             }
@@ -90,16 +108,13 @@ namespace Zoo
                 return false;
             }
         }
-        private bool IsHibernated(string month, Animal animal)
+        private bool IsHibernated(Visitor visitor, Animal animal)
         {
-            string[] summerMonths = { "JUNI", "JULI", "AUGUSTI" };
-            string[] winterMonths = { "DECEMBER", "JANUARI", "FEBRUARI" };
-
-            if (summerMonths.Contains(month.ToUpper()) && animal.Hibernate == "Sommar")
+            if (Enum.GetName(typeof(SummerMonths), visitor.VisitingDate.Month) != null &&  animal.Hibernate == "Sommar")
             {
                 return true;
             }
-            else if (winterMonths.Contains(month.ToUpper()) && animal.Hibernate == "Vinter")
+            else if (Enum.GetName(typeof(WinterMonths), visitor.VisitingDate.Month) != null && animal.Hibernate == "Vinter")
             {
                 return true;
             }
@@ -110,3 +125,5 @@ namespace Zoo
         }
     }
 }
+
+//TODO: Ändra logiken för "DisplayAllAwakeAnimal" metoden
